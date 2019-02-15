@@ -1,0 +1,23 @@
+---
+meta:
+  name:    ardupilot
+  # fly -t ohio-drnic login -c https://ci2.starkandwayne.com -n drnic
+  target:  ohio-drnic
+  url:     https://ci2.starkandwayne.com
+
+  git:
+    email:  ((git-commit-email))
+    name:   ((git-commit-name))
+
+  dockerhub:
+    username: ((dockerhub-username))
+    email:    ((dockerhub-email))
+    password: ((dockerhub-password))
+    repository_base: drnic/ardupilot
+
+  github:
+    owner:  starkandwayne
+    repo:   ardupilot-ci
+    branch: master
+    private_key:  ((github-private-key))
+    access_token: ((github-access-token))

@@ -1,0 +1,79 @@
+---
+#
+# ci/pipeline.yml
+#
+# Pipeline structure file for a Docker Image pipeline
+#
+# DO NOT MAKE CHANGES TO THIS FILE.  Instead, modify
+# ci/settings.yml and override what needs overridden.
+# This uses spruce, so you have some options there.
+#
+# author:  James Hunt <james@niftylogic.com>
+#          Dennis Bell <dennis.j.bell@gmail.com>
+# created: 2016-03-04
+
+meta:
+  name:     (( param "Please name your pipeline" ))
+  release:  (( grab meta.name ))
+  target:   (( param "Please identify the name of the target Concourse CI" ))
+  url:      (( param "Please specify the full url of the target Concourse CI" ))
+  pipeline: (( grab meta.name ))
+  image:    starkandwayne/concourse
+
+  git:
+    email:  (( param "Please provide the git email for automated commits" ))
+    name:   (( param "Please provide the git name for automated commits" ))
+
+  github:
+    uri:          (( concat "git@github.com:" meta.github.owner "/" meta.github.repo ))
+    owner:        (( param "Please specify the name of the user / organization that owns the Github repository" ))
+    repo:         (( param "Please specify the name of the Github repository" ))
+    branch:       master
+    private_key:  (( param "Please generate an SSH Deployment Key for this repo and specify it here" ))
+    access_token: (( param "Please generate a Personal Access Token and specify it here" ))
+
+  dockerhub:
+    email:      (( param "Please specify the email address for your Dockerhub account" ))
+    username:   (( param "Please specify the username for your Dockerhub account" ))
+    password:   (( param "Please specify the password for your Dockerhub account" ))
+    repository_base: (( param "Please specify the base name of the images (repo/name) that you are building" ))
+
+groups:
+  - name: (( grab meta.name ))
+    jobs:
+      - docker-sitl
+
+jobs:
+  - name: docker-sitl
+    public: true
+    serial: true
+    plan:
+      - get: git
+      - get: ardupilot
+        trigger: true
+      - put: sitl
+        params:
+          build: ardupilot
+
+resources:
+  - name: git
+    type: git
+    source:
+      uri:         (( grab meta.github.uri ))
+      branch:      (( grab meta.github.branch ))
+      private_key: (( grab meta.github.private_key ))
+
+  - name: ardupilot
+    type: git
+    source:
+      # uri:         https://github.com/ArduPilot/ardupilot.git
+      uri:         https://github.com/drnic/ardupilot.git
+      branch:      dockerfile-rebuild-sitl
+      private_key: (( grab meta.github.private_key ))
+
+  - name: sitl
+    type: docker-image
+    source:
+      .: (( inject meta.dockerhub ))
+      repository: (( concat meta.dockerhub.repository_base "-sitl" ))
+      tag: latest
