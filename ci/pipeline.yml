@@ -49,6 +49,8 @@ jobs:
     serial: true
     plan:
       - get: git
+      - get: bionic
+        trigger: true
       - get: ardupilot
         trigger: true
       - put: sitl
@@ -70,6 +72,13 @@ resources:
       uri:         https://github.com/drnic/ardupilot.git
       branch:      dockerfile-rebuild-sitl
       private_key: (( grab meta.github.private_key ))
+
+  - name: bionic
+    type: docker-image
+    check_every: 24h
+    source:
+      repository: ubuntu
+      tag: bionic
 
   - name: sitl
     type: docker-image
