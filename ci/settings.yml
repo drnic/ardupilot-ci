@@ -16,7 +16,7 @@ meta:
     repository_base: drnic/ardupilot
 
   github:
-    owner:  starkandwayne
+    owner:  drnic
     repo:   ardupilot-ci
     branch: master
     private_key:  ((github-private-key))
