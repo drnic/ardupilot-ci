@@ -67,6 +67,7 @@ resources:
 
   - name: ardupilot
     type: git
+    check_every: 24h
     source:
       # uri:         https://github.com/ArduPilot/ardupilot.git
       uri:         https://github.com/drnic/ardupilot.git
