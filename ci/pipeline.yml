@@ -41,10 +41,11 @@ meta:
 groups:
   - name: (( grab meta.name ))
     jobs:
+      - docker-base
       - docker-sitl
 
 jobs:
-  - name: docker-sitl
+  - name: docker-base
     public: true
     serial: true
     plan:
@@ -52,10 +53,24 @@ jobs:
       - get: bionic
         trigger: true
       - get: ardupilot
-        trigger: true
-      - put: sitl
+      - put: docker-base
         params:
           build: ardupilot
+
+  - name: docker-sitl
+    public: true
+    serial: true
+    plan:
+      - get: git
+      - get: docker-base
+        trigger: true
+        passed: [docker-base]
+      - get: ardupilot
+        trigger: true
+      - put: docker-sitl
+        params:
+          build: ardupilot
+          dockerfile: ardupilot/Dockerfile.sitl
 
 resources:
   - name: git
@@ -81,7 +96,14 @@ resources:
       repository: ubuntu
       tag: bionic
 
-  - name: sitl
+  - name: docker-base
+    type: docker-image
+    source:
+      .: (( inject meta.dockerhub ))
+      repository: (( concat meta.dockerhub.repository_base "-base" ))
+      tag: latest
+
+  - name: docker-sitl
     type: docker-image
     source:
       .: (( inject meta.dockerhub ))
