@@ -49,10 +49,11 @@ jobs:
     public: true
     serial: true
     plan:
-      - get: git
-      - get: bionic
-        trigger: true
-      - get: git-ardupilot-dockerfile-sitl
+      - aggregate:
+        - get: git
+        - get: bionic
+          trigger: true
+        - get: git-ardupilot-dockerfile-sitl
       - put: docker-base
         params:
           build: git-ardupilot-dockerfile-sitl
@@ -61,13 +62,14 @@ jobs:
     public: true
     serial: true
     plan:
-      - get: git
-      - get: docker-base
-        trigger: true
-        passed: [docker-base]
-        params: {skip_download: true}
-      - get: git-ardupilot-dockerfile-sitl
-        trigger: true
+      - aggregate:
+        - get: git
+        - get: docker-base
+          trigger: true
+          passed: [docker-base]
+          params: {skip_download: true}
+        - get: git-ardupilot-dockerfile-sitl
+          trigger: true
       - put: docker-sitl
         params:
           build: git-ardupilot-dockerfile-sitl
