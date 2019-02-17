@@ -52,10 +52,10 @@ jobs:
       - get: git
       - get: bionic
         trigger: true
-      - get: ardupilot
+      - get: git-ardupilot-dockerfile-sitl
       - put: docker-base
         params:
-          build: ardupilot
+          build: git-ardupilot-dockerfile-sitl
 
   - name: docker-sitl
     public: true
@@ -65,12 +65,13 @@ jobs:
       - get: docker-base
         trigger: true
         passed: [docker-base]
-      - get: ardupilot
+        params: {skip_download: true}
+      - get: git-ardupilot-dockerfile-sitl
         trigger: true
       - put: docker-sitl
         params:
-          build: ardupilot
-          dockerfile: ardupilot/Dockerfile.sitl
+          build: git-ardupilot-dockerfile-sitl
+          dockerfile: git-ardupilot-dockerfile-sitl/Dockerfile.sitl
 
 resources:
   - name: git
@@ -80,7 +81,15 @@ resources:
       branch:      (( grab meta.github.branch ))
       private_key: (( grab meta.github.private_key ))
 
-  - name: ardupilot
+  # - name: git-ardupilot-master
+  #   type: git
+  #   check_every: 24h
+  #   source:
+  #     uri:         https://github.com/ArduPilot/ardupilot.git
+  #     branch:      master
+  #     private_key: (( grab meta.github.private_key ))
+
+  - name: git-ardupilot-dockerfile-sitl
     type: git
     check_every: 24h
     source:
