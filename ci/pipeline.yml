@@ -94,6 +94,7 @@ jobs:
         params:
           repository: pushme
           rebase: true
+          force:  true
 
   - name: docker-sitl
     public: true
@@ -131,7 +132,7 @@ resources:
     type: git
     check_every: 24h
     source:
-      uri:         https://github.com/drnic/ardupilot.git
+      uri:         git@github.com:drnic/ardupilot.git
       branch:      dockerfile-rebuild-sitl
       private_key: (( grab meta.github.private_key ))
 
