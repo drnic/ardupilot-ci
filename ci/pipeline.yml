@@ -18,7 +18,10 @@ meta:
   target:   (( param "Please identify the name of the target Concourse CI" ))
   url:      (( param "Please specify the full url of the target Concourse CI" ))
   pipeline: (( grab meta.name ))
-  image:    starkandwayne/concourse
+
+  image:
+    name: starkandwayne/concourse
+    tag: latest
 
   git:
     email:  (( param "Please provide the git email for automated commits" ))
@@ -41,6 +44,7 @@ meta:
 groups:
   - name: (( grab meta.name ))
     jobs:
+      - rebase-branches
       - docker-base
       - docker-sitl
 
@@ -50,7 +54,6 @@ jobs:
     serial: true
     plan:
       - aggregate:
-        - get: git
         - get: bionic
           trigger: true
         - get: git-ardupilot-dockerfile-sitl
@@ -58,12 +61,45 @@ jobs:
         params:
           build: git-ardupilot-dockerfile-sitl
 
+  - name: rebase-branches
+    public: true
+    plan:
+      - aggregate:
+        - get: git
+        - get: git-ardupilot-master
+          trigger: true
+          params: {depth: 1, submodules: none}
+        - get: git-ardupilot-dockerfile-sitl
+      - task: rebase
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - name: git
+            - name: git-ardupilot-master
+            - name: git-ardupilot-dockerfile-sitl
+          outputs:
+            - name: pushme
+          run:
+            path: git/ci/scripts/rebase-with-master.sh
+          params:
+            GIT_MASTER: git-ardupilot-master
+            GIT_BESPOKE: git-ardupilot-dockerfile-sitl
+            GIT_OUT: pushme
+      - put: git-ardupilot-dockerfile-sitl
+        params:
+          repository: pushme
+          rebase: true
+
   - name: docker-sitl
     public: true
     serial: true
     plan:
       - aggregate:
-        - get: git
         - get: docker-base
           trigger: true
           passed: [docker-base]
@@ -83,19 +119,18 @@ resources:
       branch:      (( grab meta.github.branch ))
       private_key: (( grab meta.github.private_key ))
 
-  # - name: git-ardupilot-master
-  #   type: git
-  #   check_every: 24h
-  #   source:
-  #     uri:         https://github.com/ArduPilot/ardupilot.git
-  #     branch:      master
-  #     private_key: (( grab meta.github.private_key ))
+  - name: git-ardupilot-master
+    type: git
+    check_every: 1h
+    source:
+      uri:         https://github.com/ArduPilot/ardupilot.git
+      branch:      master
+      private_key: (( grab meta.github.private_key ))
 
   - name: git-ardupilot-dockerfile-sitl
     type: git
     check_every: 24h
     source:
-      # uri:         https://github.com/ArduPilot/ardupilot.git
       uri:         https://github.com/drnic/ardupilot.git
       branch:      dockerfile-rebuild-sitl
       private_key: (( grab meta.github.private_key ))
