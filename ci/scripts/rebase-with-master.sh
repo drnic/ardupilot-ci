@@ -11,6 +11,9 @@ echo "$git_master_branch"
 
 git clone "${GIT_BESPOKE}" "${GIT_OUT}"
 
+git config --global user.email drnicwilliams@gmail.com
+git config --global user.name "Dr Nic Williams"
+
 cd "${GIT_OUT}" || exit 1
 git remote add rebase-master "$git_master_repo" --master "$git_master_branch"
 git fetch rebase-master
